@@ -22,7 +22,6 @@ const DashboardLayout: React.FC = () => {
     navigate('/login');
   };
 
-  // --- Componente de Enlace Reutilizable (Ahora acepta onClick opcional) ---
   const NavItem: React.FC<{ 
     to: string; 
     icon: React.ElementType; 
@@ -32,7 +31,7 @@ const DashboardLayout: React.FC = () => {
     <NavLink
       to={to}
       end={to === '/dashboard'}
-      onClick={onClick} // Para cerrar el menú móvil al hacer click
+      onClick={onClick}
       className={({ isActive }) =>
         `group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 ease-in-out
         ${
