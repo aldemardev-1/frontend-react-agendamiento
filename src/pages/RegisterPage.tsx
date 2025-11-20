@@ -1,7 +1,7 @@
 // frontend/src/pages/RegisterPage.tsx
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 
 interface RegisterData {
@@ -19,7 +19,6 @@ const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
-  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: registerUser,
@@ -105,6 +104,15 @@ const RegisterPage: React.FC = () => {
             </p>
           )}
         </form>
+        <p className="text-center text-gray-600 text-sm mt-6">
+          ¿Ya tienes una cuenta?{' '}
+          <Link
+            to="/login"
+            className="text-blue-500 hover:text-blue-700 font-bold"
+          >
+            Inicia Sesion aquí
+          </Link>
+        </p>
       </div>
     </div>
   );

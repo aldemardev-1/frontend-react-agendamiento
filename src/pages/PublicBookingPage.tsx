@@ -355,7 +355,7 @@ export const PublicBookingPage: React.FC = () => {
           <p><span className="font-semibold">Empleado:</span> {reservedCita?.employee?.name}</p>
           <p><span className="font-semibold">Cliente:</span> {reservedCita?.cliente?.name}</p>
           <p className="capitalize"><span className="font-semibold">Fecha:</span> {format(
-              new Date(reservedCita?.startTime),
+              new Date(reservedCita?.startTime || ''),
               "eeee dd 'de' MMMM, yyyy 'a las' HH:mm",
               { locale: es }
             )}

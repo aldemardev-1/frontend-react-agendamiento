@@ -6,7 +6,7 @@ import { useUpdateEmployee } from '../hooks/useUpdateEmployee';
 import { useDeleteEmployee } from '../hooks/useDeleteEmployee';
 import { type Employee, type CreateEmployeeDto } from '../types/employee.types';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
-import { UserIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import EmployeeFormModal from '../components/employees/EmployeeFormModal';
 import { Link } from 'react-router-dom';
 

@@ -57,7 +57,7 @@ const CitaFormModal: React.FC<Props> = ({
   const [notes, setNotes] = useState('');
 
   // Estado para guardar la duración del servicio seleccionado
-  const [serviceDuration, setServiceDuration] = useState(0);
+  const [, setServiceDuration] = useState(0);
 
   useEffect(() => {
     if (initialData) {
