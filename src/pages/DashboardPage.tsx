@@ -1,14 +1,20 @@
 import React from 'react';
-import DashboardStats from '../components/dashboard/DashboardStats.tsx';
-import ProximasCitasList from '../components/dashboard/ProximasCitasList.tsx';
-import NuevosClientesList from '../components/dashboard/NuevosClientesList.tsx';
+import DashboardStats from '../components/dashboard/DashboardStats';
+import ProximasCitasList from '../components/dashboard/ProximasCitasList';
+import NuevosClientesList from '../components/dashboard/NuevosClientesList';
+// Importamos el nuevo componente
+import BookingLinkCard from '../components/dashboard/BookingLinkCard';
 
 const DashboardPage: React.FC = () => {
   return (
-    <div>
+    <div className="p-2 md:p-4"> 
       <h2 className="text-3xl font-bold text-gray-800 mb-6">
         Bienvenido a tu Dashboard
       </h2>
+
+      {/* --- NUEVO: Tarjeta del Link de Reservas --- */}
+      {/* La colocamos aquí para máxima visibilidad */}
+      <BookingLinkCard />
 
       {/* --- Sección de Estadísticas --- */}
       <div className="mb-8">
