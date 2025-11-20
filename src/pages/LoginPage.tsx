@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
@@ -23,14 +23,12 @@ const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   return response.data;
 };
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState(''); // Estado para el mensaje de error
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const navigate = useNavigate(); // Hook para redirigir
-
-  // <-- 1. Obtenemos la ACCIÓN 'setToken' de nuestro store
+  const navigate = useNavigate();
   const setToken = useAuthStore((state) => state.setToken);
 
   const mutation = useMutation({
@@ -70,9 +68,9 @@ const LoginPage: React.FC = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setErrorMsg(''); // Limpiar errores al re-intentar
+    setErrorMsg('');
     mutation.mutate({ email, password });
   };
 
