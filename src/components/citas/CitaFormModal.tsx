@@ -113,21 +113,28 @@ const CitaFormModal: React.FC<Props> = ({
       return;
     }
     
-    // Calcular la hora de fin
-    const startTimeDate = new Date(startTime);
+    // 1. Convertimos el string del input a objeto Date
+    const dateObj = new Date(startTime);
 
-    // --- ¡CORRECCIÓN! ---
-    // No calculamos ni enviamos 'endTime'. El backend lo hace.
+    // 2. CORRECCIÓN DE ZONA HORARIA
+    // Obtenemos la diferencia en minutos entre tu zona horaria y UTC
+    // const timeZoneOffsetMs = dateObj.getTimezoneOffset() * 60000;
+    
+    // Restamos esa diferencia para "forzar" que la hora UTC sea igual a la hora local
+    // const localDateAsUtc = new Date(dateObj.getTime() - timeZoneOffsetMs);
+
     const dataToSend: CreateCitaDto | Partial<CreateCitaDto> = {
       clienteId,
       serviceId,
       employeeId,
-      startTime: startTimeDate.toISOString(), // Enviar solo startTime en formato ISO
+      // 3. Ahora enviamos la fecha ajustada
+      // Si seleccionaste 11:30, esto enviará "2025-11-23T11:30:00.000Z"
+      startTime: dateObj.toISOString(), 
       notes: notes || undefined,
     };
     
     onSubmit(dataToSend);
-  };
+};
 
   const title = initialData ? 'Editar Cita' : 'Crear Nueva Cita';
   const submitText = initialData ? 'Guardar Cambios' : 'Crear Cita';
