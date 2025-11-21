@@ -1,20 +1,20 @@
-import React from 'react';
-import { useAuthStore } from '../../store/auth.store';
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuthStore } from '../../store/auth.store';
 
-export const SuperAdminRoute: React.FC = () => {
-  const { role, isAuthenticated } = useAuthStore();
+export const SuperAdminRoute = () => {
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  // 1. Si está cargando o no está autenticado, lo saca
-  if (!isAuthenticated) {
+  // 1. Si no está logueado -> Login
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // 2. Si está autenticado PERO no es Super Admin, lo saca al dashboard normal
-  if (role !== 'SUPER_ADMIN') {
+  // 2. Si está logueado pero NO es Super Admin -> Dashboard normal
+  if (user.role !== 'SUPER_ADMIN') {
     return <Navigate to="/dashboard" replace />;
   }
-  
-  // 3. Si es Super Admin, lo deja pasar
+
+  // 3. Si es el Jefe -> Adelante
   return <Outlet />;
 };

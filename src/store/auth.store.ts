@@ -2,28 +2,31 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { jwtDecode } from 'jwt-decode';
 
-// 1. Definimos la interfaz del Usuario
+// Definir roles
+type UserRole = 'OWNER' | 'SUPER_ADMIN' | 'EMPLOYEE';
+
+// 1. CORRECCIÓN: Agregar businessName a la interfaz User
 export interface User {
   id: string;
   email: string;
-  name: string; // Aquí guardaremos el businessName
+  name: string;
   role: UserRole;
+  businessName?: string; // <-- ¡Agregado! (Opcional porque el SuperAdmin quizás no tenga)
 }
 
 interface JwtPayload {
-  sub: string;  // ID del usuario
+  sub: string;
   email: string;
   role: string;
-  name: string; // El backend ahora envía esto
+  name: string;
+  businessName?: string; // Asegúrate de que tu token traiga esto
   iat: number;
   exp: number;
 }
 
-type UserRole = 'OWNER' | 'SUPER_ADMIN' | 'EMPLOYEE';
-
 interface AuthState {
   token: string | null;
-  user: User | null; // <-- 2. Agregamos el objeto user al estado
+  user: User | null;
   role: UserRole | null;
   isAuthenticated: boolean;
   setToken: (token: string) => void;
@@ -34,7 +37,7 @@ export const useAuthStore = create(
   persist<AuthState>(
     (set) => ({
       token: null,
-      user: null, // Inicialmente null
+      user: null,
       role: null,
       isAuthenticated: false,
 
@@ -42,42 +45,30 @@ export const useAuthStore = create(
         try {
           const decoded = jwtDecode<JwtPayload>(token);
           
-          // 3. Construimos el objeto usuario desde el token
           const user: User = {
             id: decoded.sub,
             email: decoded.email,
             name: decoded.name,
             role: (decoded.role as UserRole) || 'OWNER',
+            businessName: decoded.name, // Usamos el nombre como businessName por ahora
           };
 
           set({
             token,
-            user, // Guardamos el usuario completo
+            user,
             role: user.role,
             isAuthenticated: true,
           });
         } catch (error) {
           console.error("Token inválido:", error);
-          set({
-            token: null,
-            user: null,
-            role: null,
-            isAuthenticated: false,
-          });
+          set({ token: null, user: null, role: null, isAuthenticated: false });
         }
       },
 
       logout: () => {
-        set({
-          token: null,
-          user: null,
-          role: null,
-          isAuthenticated: false,
-        });
+        set({ token: null, user: null, role: null, isAuthenticated: false });
       },
     }),
-    {
-      name: 'auth-storage',
-    },
+    { name: 'auth-storage' },
   ),
 );

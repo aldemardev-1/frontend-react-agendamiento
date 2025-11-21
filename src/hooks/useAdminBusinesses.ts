@@ -1,31 +1,31 @@
 import { useState } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';
-import { getBusinesses } from '../api/admin.api';
+import { getBusinesses, type GetBusinessesResponse } from '../api/admin.api';
 
 const LIMIT = 10;
 
 export const useAdminBusinesses = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  // Debounce de 500ms para no saturar el servidor mientras escribes
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const queryKey = ['admin-businesses', page, debouncedSearch, LIMIT];
+  // Clave única para caché: cambia si cambia la página o la búsqueda
+  const queryKey = ['admin-businesses', page, debouncedSearch];
 
-  // 1. No desestructurar aquí
-  const queryInfo = useQuery({
+  const queryInfo = useQuery<GetBusinessesResponse>({
     queryKey: queryKey,
-    queryFn: () =>
-      getBusinesses({ page, limit: LIMIT, search: debouncedSearch }),
-    placeholderData: keepPreviousData,
+    queryFn: () => getBusinesses({ page, limit: LIMIT, search: debouncedSearch }),
+    placeholderData: keepPreviousData, // Mantiene los datos viejos mientras cargan los nuevos
   });
 
-  // 2. Devolver todo el objeto de query + los estados
   return {
-    ...queryInfo, // <-- ¡CORRECCIÓN! (Esto incluye 'data', 'isLoading', 'refetch', etc.)
+    ...queryInfo, // Exporta data, isLoading, isError, refetch, etc.
     page,
     setPage,
     search,
     setSearch,
+    limit: LIMIT
   };
 };

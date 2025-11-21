@@ -1,181 +1,169 @@
-import React from 'react';
 import { useAdminBusinesses } from '../hooks/useAdminBusinesses';
-import { useUpdatePlan } from '../hooks/useUpdatePlan';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { type UpdatePlanDto } from '../api/admin.api'; // <-- 1. IMPORTAR TIPO
+import { useAdminStats } from '../hooks/useAdminStats';
+import { 
+  MagnifyingGlassIcon, 
+  // FunnelIcon, <-- ELIMINADO (No se usaba)
+  ArrowPathIcon,
+  BuildingStorefrontIcon,
+  CalendarDaysIcon,
+  CurrencyDollarIcon
+} from '@heroicons/react/24/outline';
 
-export const AdminBusinessesPage: React.FC = () => {
+// ... resto del archivo igual ...
+// Asegúrate de copiar el resto del contenido del archivo anterior si no lo tienes a mano, 
+// pero lo único que cambia es borrar esa línea del import.
+const AdminBusinessesPage: React.FC = () => {
   const { 
-    data, 
-    isLoading, 
+    data: businessData, 
+    isLoading: isLoadingTable, 
     isError, 
-    search, 
-    setSearch, 
+    refetch, 
     page, 
-    setPage,
-    refetch, // <-- Ahora sí existen
-    isRefetching // <-- Ahora sí existen
+    setPage, 
+    search, 
+    setSearch 
   } = useAdminBusinesses();
-    
-  const updatePlanMutation = useUpdatePlan();
 
-  // 2. Usar el tipo importado
-  const handlePlanChange = (userId: string, newPlan: UpdatePlanDto['plan']) => {
-    if (window.confirm(`¿Seguro que quieres cambiar este usuario al plan ${newPlan}?`)) {
-      updatePlanMutation.mutate({ 
-        userId, 
-        plan: newPlan // <-- 3. Ya no necesita 'as any'
-      });
-    }
-  };
+  const { data: statsData, isLoading: isLoadingStats } = useAdminStats();
 
-  const formatExpiryDate = (dateString: string | null | undefined) => {
-    if (!dateString) {
-      return <span className="text-gray-400">—</span>;
-    }
-    const date = new Date(dateString);
-    // Comprobar si la fecha es en el pasado (sumar 1 día para gracia)
-    const isPast = date < new Date(Date.now() - 86400000); 
-    return (
-      <span className={isPast ? 'font-bold text-red-500' : 'text-gray-700'}>
-        {format(date, 'dd MMM, yyyy', { locale: es })}
-      </span>
-    );
-  };
+  const businesses = businessData?.data || [];
+  const meta = businessData?.meta;
+  const totalPages = meta?.totalPages || 1;
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
+  const formatCurrency = (value: number) => 
+    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
+
+  const StatCard = ({ title, value, icon: Icon, color, loading }: any) => (
+    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+      <div className={`p-3 rounded-lg ${color}`}>
+        <Icon className="h-6 w-6 text-white" />
+      </div>
+      <div>
+        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">{title}</p>
+        {loading ? (
+            <div className="h-8 w-20 bg-slate-100 animate-pulse rounded mt-1"></div>
+        ) : (
+            <p className="text-2xl font-bold text-slate-800">{value}</p>
+        )}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Gestionar Negocios
-        </h1>
-        <button
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Gestionar Negocios</h1>
+          <p className="text-slate-500 mt-1">Administra todos los clientes SaaS de tu plataforma.</p>
+        </div>
+        <button 
           onClick={() => refetch()}
-          disabled={isRefetching || isLoading}
-          className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium shadow-sm active:scale-95"
         >
-          <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-          Actualizar
+            <ArrowPathIcon className={`h-4 w-4 ${isLoadingTable ? 'animate-spin' : ''}`} /> 
+            Actualizar
         </button>
       </div>
 
-      {/* Input de Búsqueda */}
-      <div className="mb-4">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre de negocio o email..."
-          className="w-full md:w-1/3 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard title="Total Negocios" value={statsData?.totalBusinesses || 0} icon={BuildingStorefrontIcon} color="bg-blue-500" loading={isLoadingStats}/>
+        <StatCard title="Citas Gestionadas" value={statsData?.totalCitas || 0} icon={CalendarDaysIcon} color="bg-indigo-500" loading={isLoadingStats}/>
+        <StatCard title="Ingresos Totales" value={formatCurrency(statsData?.mrr || 0)} icon={CurrencyDollarIcon} color="bg-emerald-500" loading={isLoadingStats}/>
       </div>
 
-      {/* Tabla de Negocios */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        {isLoading && (
-          <div className="flex justify-center items-center gap-2 p-6">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-gray-600">Cargando negocios...</span>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="relative max-w-md w-full">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o email..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-shadow"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1); 
+              }}
+            />
           </div>
-        )}
-        {isError && (
-          <div className="flex justify-center items-center gap-2 p-6 text-red-600">
-            <AlertCircle className="h-5 w-5" />
-            <span className="font-semibold">Error al cargar datos.</span>
-          </div>
-        )}
-        {data && (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negocio</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan Actual</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimiento</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empleados</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Servicios</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Negocio</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Plan</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Métricas</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Registro</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.data.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No se encontraron negocios.
-                  </td>
-                </tr>
-              )}
-              {data.data.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.businessName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email}</td>
+            <tbody className="bg-white divide-y divide-slate-200">
+              {isLoadingTable && businesses.length === 0 ? (
+                 <tr><td colSpan={5} className="text-center py-10 text-slate-500">Cargando...</td></tr>
+              ) : null}
+              {isError ? (
+                 <tr><td colSpan={5} className="text-center py-10 text-red-500">Error al cargar datos.</td></tr>
+              ) : null}
+              {businesses.map((business) => (
+                <tr key={business.id} className="hover:bg-slate-50/80 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      user.plan === 'PROFESIONAL' ? 'bg-green-100 text-green-800' :
-                      user.plan === 'EMPRESA' ? 'bg-blue-100 text-blue-800' : 
-                      'bg-gray-100 text-gray-800'
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold text-sm shadow-sm">
+                          {business.businessName?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-bold text-slate-900">{business.businessName}</div>
+                        <div className="text-sm text-slate-500">{business.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${
+                      business.plan === 'FREE' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+                      business.plan === 'PROFESIONAL' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                      'bg-purple-100 text-purple-700 border-purple-200'
                     }`}>
-                      {user.plan}
+                      {business.plan}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {/* ¡AHORA SÍ FUNCIONA! */}
-                    {formatExpiryDate(user.planExpiresAt)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    <div className="flex flex-col gap-1 text-xs">
+                        <span className="flex items-center gap-1">👥 <b>{business._count?.employees || 0}</b> Empleados</span>
+                        <span className="flex items-center gap-1">📅 <b>{business._count?.citas || 0}</b> Citas</span>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user._count.employees} / {user.maxEmployees}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user._count.services} / {user.maxServices}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                    {user.plan === 'GRATIS' ? (
-                      <button
-                        onClick={() => handlePlanChange(user.id, 'PROFESIONAL')}
-                        disabled={updatePlanMutation.isPending}
-                        className="text-green-600 hover:text-green-900 font-medium disabled:opacity-50"
-                      >
-                        Activar Profesional
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handlePlanChange(user.id, 'GRATIS')}
-                        disabled={updatePlanMutation.isPending}
-                        className="text-red-600 hover:text-red-900 font-medium disabled:opacity-50"
-                      >
-                        Revertir a Gratis
-                      </button>
-                    )}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                    {new Date(business.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button className="text-blue-600 hover:text-blue-900 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                        Gestionar
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
-      
-      {/* Paginación */}
-      {data && data.meta.totalPages > 1 && (
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-600">
-            Página {data.meta.currentPage} de {data.meta.totalPages} (Total: {data.meta.totalItems} negocios)
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Anterior
-            </button>
-            <button
-              onClick={() => setPage((p) => p + 1)}
-              disabled={page === data.meta.totalPages}
-              className="px-3 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Siguiente
-            </button>
-          </div>
         </div>
-      )}
+        
+        <div className="bg-white px-4 py-3 border-t border-slate-200 sm:px-6 flex justify-between items-center">
+            <p className="text-sm text-slate-500">
+                Página <span className="font-medium">{page}</span> de <span className="font-medium">{totalPages}</span>
+            </p>
+            <div className="flex gap-2">
+                <button onClick={() => setPage(old => Math.max(old - 1, 1))} disabled={!hasPrevPage || isLoadingTable} className="px-3 py-1 border border-slate-300 rounded-md text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50">Anterior</button>
+                <button onClick={() => setPage(old => (hasNextPage ? old + 1 : old))} disabled={!hasNextPage || isLoadingTable} className="px-3 py-1 border border-slate-300 rounded-md text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50">Siguiente</button>
+            </div>
+        </div>
+      </div>
     </div>
   );
 };

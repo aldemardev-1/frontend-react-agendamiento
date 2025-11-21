@@ -1,24 +1,26 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateBusinessPlan } from '../api/admin.api';
+import { updateBusinessPlan, type Plan } from '../api/admin.api';
 
 interface UpdatePlanVariables {
   userId: string;
-  plan: 'GRATIS' | 'PROFESIONAL' | 'EMPRESA';
+  plan: Plan; // Usamos el tipo Plan importado (que es 'FREE' | 'PROFESIONAL' | ...)
 }
 
 export const useUpdatePlan = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ userId, plan }: UpdatePlanVariables) =>
-      updateBusinessPlan(userId, { plan }),
+      // CORRECCIÓN: Pasamos 'plan' directamente, sin llaves {}
+      updateBusinessPlan(userId, plan),
       
     onSuccess: () => {
-      // Refrescar la lista de negocios
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
-      alert('¡Plan actualizado exitosamente!');
+      // alert('¡Plan actualizado exitosamente!'); // Opcional
     },
     onError: (error: any) => {
-      alert(`Error al actualizar el plan: ${error.response?.data?.message}`);
+      const msg = error.response?.data?.message || 'Error desconocido';
+      alert(`Error al actualizar el plan: ${msg}`);
     },
   });
 };

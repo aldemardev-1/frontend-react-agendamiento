@@ -15,15 +15,16 @@ import DashboardLayout from './layouts/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
 import EmpleadosPage from './pages/EmpleadosPage';
 import { EmployeeAvailabilityPage } from './pages/EmployeeAvailabilityPage';
-import { ClientesPage } from './pages/ClientsPage'; // Corregido de tu archivo
+import { ClientesPage } from './pages/ClientsPage'; 
 import ServiciosPage from './pages/ServiciosPage';
 import CalendarioPage from './pages/CalendarioPage';
 import CancelPage from './pages/CancelPage';
 
-// --- ¡NUEVO! Importar componentes de Super Admin ---
+// --- Componentes de Super Admin ---
 import { SuperAdminRoute } from './components/auth/SuperAdminRoute';
 import AdminLayout from './layouts/AdminLayout';
 import AdminBusinessesPage from './pages/AdminBusinessesPage';
+import SettingsPage from './components/settings/SettingsPage';
 
 function App() {
   return (
@@ -36,21 +37,21 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* --- ¡NUEVO! RUTAS PÚBLICAS DE RESERVA --- */}
-        {/* Usan un layout diferente (sin sidebar de admin) */}
+        {/* --- RUTAS PÚBLICAS DE RESERVA --- */}
         <Route element={<PublicLayout />}>
-          {/* :userId es el ID del negocio (dueño) */}
           <Route path="/:userId/book" element={<PublicBookingPage />} />
           <Route path="/cancel/:token" element={<CancelPage />} />
         </Route>
 
-        {/* --- RUTAS PROTEGIDAS (LAYOUT DEL DASHBOARD) --- */}
+        {/* --- RUTAS PROTEGIDAS (OWNER DASHBOARD) --- */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="servicios" element={<ServiciosPage />} />
             <Route path="empleados" element={<EmpleadosPage />} />
             <Route path="clientes" element={<ClientesPage />} />
+            <Route path="configuracion" element={<SettingsPage />} />
+
             <Route
               path="empleados/:id/horario"
               element={<EmployeeAvailabilityPage />}
@@ -59,24 +60,34 @@ function App() {
           </Route>
         </Route>
 
-        {/* --- ¡NUEVO! RUTAS DE SUPER ADMIN --- */}
-        {/* 1. Primero verifica que esté logueado (ProtectedRoute) */}
-        {/* 2. Luego verifica que sea SUPER_ADMIN (SuperAdminRoute) */}
+        {/* --- RUTAS DE SUPER ADMIN --- */}
         <Route element={<ProtectedRoute />}>
           <Route element={<SuperAdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminBusinessesPage />} />
-              {/* Aquí irían más rutas de admin, ej. /admin/stats */}
+              {/* Futuras rutas: /admin/analytics, /admin/users, etc */}
+              <Route path="stats" element={
+                <div className="p-10 text-center">
+                  <h2 className="text-2xl font-bold text-slate-700">Métricas Globales</h2>
+                  <p className="text-slate-500">Próximamente...</p>
+                </div>
+              } />
             </Route>
           </Route>
         </Route>
 
-        {/* (Opcional) Ruta de "No Encontrado" 404 */}
-        <Route path="*" element={<div>Página no encontrada</div>} />
+        {/* Ruta 404 */}
+        <Route path="*" element={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600">
+                <div className="text-center">
+                    <h1 className="text-4xl font-bold mb-2">404</h1>
+                    <p>Página no encontrada</p>
+                </div>
+            </div>
+        } />
       </Routes>
     </>
   );
 }
 
 export default App;
-

@@ -1,9 +1,9 @@
 import api from './axios';
 
-// 1. Tipos locales (deben coincidir con el backend)
-type Plan = 'GRATIS' | 'PROFESIONAL' | 'EMPRESA';
+// 1. Tipos de Datos
+export type Plan = 'FREE' | 'PROFESIONAL' | 'EMPRESA';
 
-interface User {
+export interface BusinessUser {
   id: string;
   email: string;
   businessName: string;
@@ -11,7 +11,8 @@ interface User {
   plan: Plan;
   maxEmployees: number;
   maxServices: number;
-  planExpiresAt: string | null; // <-- ¡AÑADIDO!
+  planExpiresAt: string | null;
+  createdAt: string;
   _count: {
     employees: number;
     services: number;
@@ -20,9 +21,8 @@ interface User {
   };
 }
 
-// 2. Tipo para la respuesta paginada
-interface PaginatedUsersResponse {
-  data: User[];
+export interface GetBusinessesResponse {
+  data: BusinessUser[];
   meta: {
     totalItems: number;
     currentPage: number;
@@ -31,31 +31,29 @@ interface PaginatedUsersResponse {
   };
 }
 
-// 3. Tipo para los parámetros de GET
-interface GetAdminParams {
-  page: number;
-  limit: number;
-  search: string;
+// --- ¡ESTO ES LO QUE TE FALTA! ---
+export interface AdminGlobalStats {
+  totalBusinesses: number;
+  totalCitas: number;
+  mrr: number;
 }
+// --------------------------------
 
-// 4. GET /admin/businesses (Paginado)
-export const getBusinesses = async ({ page, limit, search }: GetAdminParams) => {
-  const params = new URLSearchParams();
-  params.append('page', page.toString());
-  params.append('limit', limit.toString());
-  if (search) {
-    params.append('search', search);
-  }
-  
-  const response = await api.get<PaginatedUsersResponse>('/admin/businesses', { params });
-  return response.data;
+// 2. Funciones de Petición
+
+export const getBusinesses = async (params: { page: number; limit: number; search: string }) => {
+  const { data } = await api.get<GetBusinessesResponse>('/admin/businesses', { params });
+  return data;
 };
 
-// 5. PATCH /admin/businesses/:id/plan
-export interface UpdatePlanDto { // Exportar para que el hook lo use
-  plan: Plan;
-}
-export const updateBusinessPlan = async (userId: string, data: UpdatePlanDto) => {
-  const response = await api.patch<User>(`/admin/businesses/${userId}/plan`, data);
-  return response.data;
+// --- ¡ESTA ES LA FUNCIÓN QUE DA EL ERROR! ---
+export const getAdminStats = async () => {
+  const { data } = await api.get<AdminGlobalStats>('/admin/stats');
+  return data;
+};
+// -------------------------------------------
+
+export const updateBusinessPlan = async (userId: string, plan: Plan) => {
+  const { data } = await api.patch<BusinessUser>(`/admin/businesses/${userId}/plan`, { plan });
+  return data;
 };
