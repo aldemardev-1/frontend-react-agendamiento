@@ -25,6 +25,7 @@ import { SuperAdminRoute } from './components/auth/SuperAdminRoute';
 import AdminLayout from './layouts/AdminLayout';
 import AdminBusinessesPage from './pages/AdminBusinessesPage';
 import SettingsPage from './components/settings/SettingsPage';
+import SupportPage from './pages/SupportPage';
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
             <Route path="empleados" element={<EmpleadosPage />} />
             <Route path="clientes" element={<ClientesPage />} />
             <Route path="configuracion" element={<SettingsPage />} />
+            <Route path="ayuda" element={<SupportPage />} />
 
             <Route
               path="empleados/:id/horario"

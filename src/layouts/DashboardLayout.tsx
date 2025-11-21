@@ -10,7 +10,8 @@ import {
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
-  Cog6ToothIcon, // Icono nuevo para Configuración (Engranaje)
+  Cog6ToothIcon,
+  LifebuoyIcon, // Icono nuevo para Configuración (Engranaje)
 } from '@heroicons/react/24/outline';
 
 const DashboardLayout: React.FC = () => {
@@ -104,6 +105,13 @@ const DashboardLayout: React.FC = () => {
             to="/dashboard/configuracion" 
             icon={Cog6ToothIcon} 
             label="Configuración" 
+            onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+          />
+
+           <NavItem 
+            to="/dashboard/ayuda" 
+            icon={LifebuoyIcon} 
+            label="Ayuda y Soporte" 
             onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
           />
         </div>
